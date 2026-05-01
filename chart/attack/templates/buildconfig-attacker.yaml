@@ -1,0 +1,21 @@
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: {{ .Values.image.attacker.name }}
+  namespace: {{ .Values.attackerNamespace }}
+  labels:
+    {{- include "attack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: attacker
+spec:
+  output:
+    to:
+      kind: ImageStreamTag
+      name: {{ .Values.image.attacker.name }}:{{ .Values.image.attacker.tag }}
+  source:
+    type: Binary
+  strategy:
+    type: Docker
+    dockerStrategy:
+      dockerfilePath: Dockerfile
+  resources:
+    {{- toYaml .Values.build.attacker.resources | nindent 4 }}

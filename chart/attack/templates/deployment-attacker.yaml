@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attacker
+  namespace: {{ .Values.attackerNamespace }}
+  labels:
+    app: attacker
+    {{- include "attack.labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attacker
+  template:
+    metadata:
+      labels:
+        app: attacker
+    spec:
+      serviceAccountName: attacker
+      containers:
+        - name: attacker
+          image: {{ include "attack.attackerImage" . }}
+          ports:
+            - name: ttyd
+              containerPort: 7681
+              protocol: TCP
+          env:
+            - name: AGENT_NS
+              value: {{ .Values.agentNamespace | quote }}
+            - name: NEO_UI_SVC
+              value: "{{ .Values.agentServiceName }}.{{ .Values.agentNamespace }}.svc:3458"
+            - name: BIND_PORT
+              value: {{ .Values.bindShellPort | quote }}
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi

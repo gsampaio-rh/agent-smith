@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .Values.attackerNamespace }}
+  labels:
+    name: {{ .Values.attackerNamespace }}
+    {{- include "attack.labels" . | nindent 4 }}
+  annotations:
+    helm.sh/resource-policy: keep

@@ -1,0 +1,23 @@
+agentNamespace: agent-namespace
+
+attackerNamespace: attacker
+
+agentServiceName: neo-ui
+
+bindShellPort: 4444
+
+image:
+  registry: image-registry.openshift-image-registry.svc:5000
+  attacker:
+    name: neo-attacker
+    tag: latest
+
+build:
+  attacker:
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "1"
+        memory: 2Gi

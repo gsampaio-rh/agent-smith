@@ -1,0 +1,20 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: neo-attacker
+  namespace: {{ .Values.attackerNamespace }}
+  labels:
+    app: attacker
+    {{- include "attack.labels" . | nindent 4 }}
+  annotations:
+    openshift.io/display-name: "Neo — Attacker Terminal"
+spec:
+  to:
+    kind: Service
+    name: neo-attacker
+    weight: 100
+  port:
+    targetPort: ttyd
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

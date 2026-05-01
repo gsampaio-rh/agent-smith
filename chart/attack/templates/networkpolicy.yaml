@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-bind-shell
+  namespace: {{ .Values.agentNamespace }}
+  labels:
+    {{- include "attack.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: neo
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.attackerNamespace }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.bindShellPort }}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: {{ .Values.agentNamespace }}
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: ingress
+      ports:
+        - protocol: TCP
+          port: 3458
+        - protocol: TCP
+          port: 7681
