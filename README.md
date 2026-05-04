@@ -15,9 +15,6 @@ export AGENT_NS=agent-namespace
 # Deploy everything (charts + build)
 make deploy
 
-# Run full automated attack
-make auto-attack
-
 # Cleanup
 make clean
 ```

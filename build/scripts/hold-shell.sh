@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Hold an open connection to the bind shell on the agent pod.
 # Keeps the connection alive so net-monitor detects "established" state
-# and the Neo UI map transitions to the "exploiting" phase.
+# and the Neo UI map transitions to the "compromised" phase.
 # Press Ctrl+C to disconnect.
 set -euo pipefail
 
