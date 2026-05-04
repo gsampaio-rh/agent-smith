@@ -3,7 +3,7 @@
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  %-14s %s\n", $$1, $$2}'
 
-deploy: ## Deploy attack infrastructure (target-apps + attacker + build)
+deploy: ## Deploy attack infrastructure (attacker pod + NetworkPolicy + build)
 	./scripts/deploy.sh
 
 build: ## Build attacker container image only
@@ -18,7 +18,3 @@ clean: ## Remove attack infrastructure
 
 test: ## Run Helm template tests
 	bash tests/attack-chart.test.sh
-	bash tests/target-apps-chart.test.sh
-
-auto-attack: ## Run full automated attack sequence
-	./scripts/auto-attack.sh

@@ -1,6 +1,0 @@
-agentNamespace: agent-namespace
-agentServiceAccount: neo
-
-targetNamespace: target-apps
-
-targetImage: alpine:3.19

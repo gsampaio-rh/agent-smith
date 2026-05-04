@@ -2,8 +2,9 @@
 
 Adversary tooling for The Matrix workshop. Deploys:
 
-- **target-apps**: inventory-app with poisoned logs + RBAC granting the Neo agent read access
 - **attacker**: ttyd-based container with attack scripts, NetworkPolicy for bind shell
+
+> **Note:** The `target-apps` chart (poisoned inventory-app + RBAC) is managed by [the-matrix-infra](https://github.com/gsampaio-rh/the-matrix-infra).
 
 ## Quick Start
 
@@ -26,7 +27,6 @@ make clean
 ```
 build/          Attacker container image (Dockerfile + scripts)
 chart/attack/   Helm chart: attacker deployment + NetworkPolicy
-chart/target-apps/  Helm chart: poisoned inventory-app + RBAC
 scripts/        Deploy, attack automation, payloads
 tests/          Helm template tests
 ```
