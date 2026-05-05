@@ -1,6 +1,6 @@
 # Plan: Agent Smith
 
-**Status:** Sprint 3 (complete)
+**Status:** Sprint 4 (complete)
 **Date:** 2026-05-05
 **Related:** [Kill Chain Spec](specs/kill-chain.md) | [Post-Breach Research](research/post-breach-analysis.md) | [Changelog](CHANGELOG.md) | [ADRs](adrs/)
 
@@ -19,6 +19,10 @@ Completed — see [Changelog](CHANGELOG.md#sprint-2--post-breach-attack-scripts)
 ## Sprint 3 — Attacker TUI Experience ✓
 
 Completed — see [Changelog](CHANGELOG.md#sprint-3--attacker-tui-experience).
+
+## Sprint 4 — Attack Visualization & Pod Targeting ✓
+
+Completed — see [Changelog](CHANGELOG.md#sprint-4--attack-visualization--pod-targeting).
 
 ---
 

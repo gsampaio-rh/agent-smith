@@ -28,16 +28,19 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: Log Flooding"
+echo "@PHASE Log-Flood"
 
 PYTHON_CODE='
 import time, random, string, os, sys
 
-line_count = '$LINE_COUNT'
+line_count = int('$LINE_COUNT')
 
+print("@PHASE Generate-Logs")
 print("=" * 60)
 print("  SABOTAGE: Log Flooding")
 print("=" * 60)
 print(f"  Lines to generate: {line_count}")
+print(f"@FINDING high Generating {line_count} fake log lines to pollute log pipeline")
 print()
 
 levels = ["INFO", "DEBUG", "WARN", "ERROR", "TRACE"]
@@ -81,6 +84,7 @@ rate = line_count / elapsed if elapsed > 0 else 0
 print()
 print(f"  Generated {line_count} log lines in {elapsed:.1f}s ({rate:.0f} lines/sec)")
 print("  Log storage is now polluted. Incident response will be harder.")
+print(f"@RESULT success Generated {line_count} log lines in {elapsed:.1f}s ({rate:.0f}/sec)")
 print()
 print("Log flooding complete.")
 '

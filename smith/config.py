@@ -6,7 +6,7 @@ import json
 import os
 import socket
 import subprocess
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 
@@ -21,6 +21,17 @@ DEFAULTS = {
 
 SA_TOKEN_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/token"
 SA_CA_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+
+
+@dataclass
+class PodInfo:
+    """Discovered Kubernetes pod with connectivity state."""
+
+    name: str
+    ip: str
+    status: str
+    namespace: str
+    shell_open: bool = False
 
 
 def _detect_scripts_dir() -> str:
@@ -82,8 +93,8 @@ class SmithConfig:
         )
 
 
-def resolve_agent_ip(config: SmithConfig) -> str | None:
-    """Resolve the Neo agent pod IP via k8s API. Returns None on failure."""
+def _query_k8s_pods(config: SmithConfig) -> list[dict] | None:
+    """Query k8s API for Neo agent pods. Returns raw items list or None."""
     if not os.path.isfile(SA_TOKEN_PATH):
         return None
     try:
@@ -102,10 +113,43 @@ def resolve_agent_ip(config: SmithConfig) -> str | None:
             capture_output=True, text=True, timeout=5,
         )
         data = json.loads(result.stdout)
-        ip = data["items"][0]["status"]["podIP"]
-        return ip if ip and ip != "null" else None
+        return data.get("items", [])
     except Exception:
         return None
+
+
+def resolve_agent_ip(config: SmithConfig) -> str | None:
+    """Resolve the first Neo agent pod IP via k8s API. Returns None on failure."""
+    items = _query_k8s_pods(config)
+    if not items:
+        return None
+    try:
+        ip = items[0]["status"]["podIP"]
+        return ip if ip and ip != "null" else None
+    except (KeyError, IndexError):
+        return None
+
+
+def discover_agent_pods(config: SmithConfig) -> list[PodInfo]:
+    """Discover all Neo agent pods with IP, status, and bind-shell state."""
+    items = _query_k8s_pods(config)
+    if not items:
+        return []
+
+    pods: list[PodInfo] = []
+    for item in items:
+        ip = item.get("status", {}).get("podIP", "")
+        if not ip or ip == "null":
+            continue
+        phase = item.get("status", {}).get("phase", "Unknown")
+        name = item.get("metadata", {}).get("name", "unknown")
+        ns = item.get("metadata", {}).get("namespace", config.agent_ns)
+        shell_open = check_bind_shell(ip, config.bind_port)
+        pods.append(PodInfo(
+            name=name, ip=ip, status=phase,
+            namespace=ns, shell_open=shell_open,
+        ))
+    return pods
 
 
 def check_bind_shell(host: str, port: int, timeout: float = 2.0) -> bool:

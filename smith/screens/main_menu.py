@@ -21,20 +21,25 @@ class AttackPreview(Static):
             self.update("[dim]Select an attack to see details[/dim]")
             return
 
-        env = ", ".join(attack.env_vars) if attack.env_vars else "none"
         shell = "[red]yes[/red]" if attack.requires_bind_shell else "[green]no[/green]"
 
-        text = (
-            f"[bold {attack.phase.color}]{attack.name}[/]\n"
-            f"[dim]{'─' * 40}[/dim]\n\n"
-            f"{attack.description}\n\n"
-            f"[bold]Script:[/bold]     {attack.script}\n"
-            f"[bold]Phase:[/bold]      [{attack.phase.color}]{attack.phase.label}[/]\n"
-            f"[bold]Bind shell:[/bold] {shell}\n"
-            f"[bold]Env vars:[/bold]   {env}\n\n"
-            f"[dim]Press Enter to run  •  ? for help[/dim]"
-        )
-        self.update(text)
+        lines = [
+            f"[bold {attack.phase.color}]{attack.name}[/]",
+            f"[dim]{'─' * 40}[/dim]",
+            "",
+            f"{attack.description}",
+            "",
+            f"[bold]Technique:[/bold]  {attack.technique}",
+            f"[bold]Phase:[/bold]      [{attack.phase.color}]{attack.phase.label}[/]",
+            f"[bold]Bind shell:[/bold] {shell}",
+            f"[bold]Impact:[/bold]     {attack.impact}",
+        ]
+
+        if attack.loot_types:
+            lines.append(f"[bold]Loot:[/bold]       {', '.join(attack.loot_types)}")
+
+        lines += ["", "[dim]Press Enter to run  •  ? for help[/dim]"]
+        self.update("\n".join(lines))
 
 
 class MainMenuScreen(Screen):
@@ -122,8 +127,15 @@ class MainMenuScreen(Screen):
         if event.option.id:
             attack = ATTACKS_BY_ID.get(event.option.id)
             if attack:
-                from smith.screens.execution import ExecutionScreen
-                self.app.push_screen(ExecutionScreen(attack))
+                from smith.config import PodInfo
+                from smith.screens.target_picker import TargetPicker
+
+                def on_target_selected(target: PodInfo | None) -> None:
+                    if target is not None:
+                        from smith.screens.execution import ExecutionScreen
+                        self.app.push_screen(ExecutionScreen(attack, target=target))
+
+                self.app.push_screen(TargetPicker(), callback=on_target_selected)
 
     def action_request_quit(self) -> None:
         self.app.exit()

@@ -20,10 +20,12 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: Lateral Movement (DB)"
+echo "@PHASE Lateral-DB"
 
 PYTHON_CODE='
 import socket, sys
 
+print("@PHASE DB-Discovery")
 print("=" * 60)
 print("  LATERAL MOVEMENT: Database Discovery & Connection")
 print("=" * 60)
@@ -50,11 +52,14 @@ for svc_name, port, db_type in db_targets:
             continue
 
         print(f"  Found {db_type}: {fqdn} -> {ip}:{port}")
+        print(f"@FINDING medium {db_type} service found: {fqdn} -> {ip}:{port}")
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(3)
             s.connect((ip, port))
             print(f"    TCP CONNECTED to {ip}:{port}")
+            print(f"@FINDING high TCP connection established to {db_type} at {ip}:{port}")
+            print(f"@LOOT db-access {db_type}:{fqdn}:{port}")
 
             if db_type == "Redis":
                 s.send(b"PING\r\n")
@@ -86,8 +91,10 @@ if connected:
     print(f"  Successfully connected to {len(connected)} database(s):")
     for c in connected:
         print(f"    - {c}")
+    print(f"@RESULT success Connected to {len(connected)} database(s)")
 else:
     print("  No databases were reachable.")
+    print("@RESULT success No databases reachable (scan complete)")
 print()
 print("Lateral movement scan complete.")
 '

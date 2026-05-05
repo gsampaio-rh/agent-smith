@@ -1,0 +1,36 @@
+services:
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    hostname: agent
+    networks:
+      default:
+        aliases:
+          - kubernetes.default.svc
+    volumes:
+      - sa-token:/mnt/shared-sa
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import socket; [socket.create_connection(('127.0.0.1', p), timeout=2).close() for p in (3458, 4444)]\""]
+      interval: 3s
+      timeout: 5s
+      start_period: 5s
+      retries: 20
+
+  attacker:
+    build:
+      context: ../../
+      dockerfile: tests/integration/Dockerfile.attacker
+    depends_on:
+      agent:
+        condition: service_healthy
+    environment:
+      AGENT_NS: agent-namespace
+      NEO_UI_SVC: "agent:3458"
+      BIND_PORT: "4444"
+    volumes:
+      - sa-token:/var/run/secrets/kubernetes.io/serviceaccount:ro
+    command: ["sleep", "infinity"]
+
+volumes:
+  sa-token:

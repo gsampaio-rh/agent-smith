@@ -44,10 +44,17 @@ def cmd_run(args: argparse.Namespace) -> int:
         console.print(f"[red]{exc}[/red]")
         return 1
 
+    target = getattr(args, "target", None)
+    if target:
+        console.print(f"[bold]Target:[/bold]  {target}")
+
     console.print(f"[bold]Running:[/bold] {attack.name} ({attack.script})")
     console.print()
 
-    runner = ScriptRunner()
+    env_overrides = {}
+    if target:
+        env_overrides["AGENT_POD_IP"] = target
+    runner = ScriptRunner(env_overrides=env_overrides)
     result = runner.run(args.attack_id)
 
     if result.output.strip():
@@ -155,6 +162,10 @@ def build_parser() -> argparse.ArgumentParser:
 
     run_p = sub.add_parser("run", help="Run a specific attack")
     run_p.add_argument("attack_id", help="Attack ID (e.g. recon, steal-secrets)")
+    run_p.add_argument(
+        "--target", metavar="IP_OR_POD",
+        help="Target pod IP or name (skips k8s pod discovery)",
+    )
     run_p.set_defaults(func=cmd_run)
 
     status_p = sub.add_parser("status", help="Show environment and bind-shell state")

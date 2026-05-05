@@ -34,18 +34,22 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: Crypto-Miner Simulation"
+echo "@PHASE Crypto-Miner"
 
 PYTHON_CODE='
 import multiprocessing, time, os, signal
 
-duration = '$DURATION'
+duration = int('$DURATION')
 
+print("@PHASE Spawn-Workers")
 print("=" * 60)
 print("  SABOTAGE: Crypto-Miner Simulation")
 print("=" * 60)
-print(f"  CPU cores:  {multiprocessing.cpu_count()}")
+cpu_count = multiprocessing.cpu_count()
+print(f"  CPU cores:  {cpu_count}")
 print(f"  Duration:   {duration}s")
 print(f"  PID:        {os.getpid()}")
+print(f"@FINDING high Spawning {cpu_count} CPU-intensive worker processes for {duration}s")
 print()
 
 def mine():
@@ -54,7 +58,6 @@ def mine():
         _ = 2 ** 1000000
 
 workers = []
-cpu_count = multiprocessing.cpu_count()
 print(f"  Spawning {cpu_count} worker processes...")
 
 for i in range(cpu_count):
@@ -71,8 +74,10 @@ print()
 for p in workers:
     p.join()
 
+print("@PHASE Complete")
 print("  All workers finished.")
 print(f"  CPU spike lasted {duration} seconds.")
+print(f"@RESULT success Crypto-miner ran {cpu_count} workers for {duration}s")
 print()
 print("Crypto-miner simulation complete.")
 '

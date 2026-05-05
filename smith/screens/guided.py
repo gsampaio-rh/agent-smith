@@ -99,8 +99,17 @@ class GuidedScreen(Screen):
 
     def action_run_current(self) -> None:
         if self._attacks:
-            from smith.screens.execution import ExecutionScreen
-            self.app.push_screen(ExecutionScreen(self._attacks[self._step]))
+            from smith.config import PodInfo
+            from smith.screens.target_picker import TargetPicker
+
+            attack = self._attacks[self._step]
+
+            def on_target_selected(target: PodInfo | None) -> None:
+                if target is not None:
+                    from smith.screens.execution import ExecutionScreen
+                    self.app.push_screen(ExecutionScreen(attack, target=target))
+
+            self.app.push_screen(TargetPicker(), callback=on_target_selected)
 
     def action_next_step(self) -> None:
         if self._step < len(self._attacks) - 1:

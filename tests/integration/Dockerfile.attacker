@@ -1,0 +1,20 @@
+FROM python:3.12-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash ncat curl jq coreutils \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /usr/local/lib/attacker /data/payloads
+
+COPY scripts/attacks/ /usr/local/lib/attacker/
+COPY scripts/payloads/ /data/payloads/
+
+RUN chmod +x /usr/local/lib/attacker/*.sh
+
+COPY pyproject.toml /opt/smith/pyproject.toml
+COPY smith/ /opt/smith/smith/
+RUN pip install --no-cache-dir /opt/smith/
+
+ENV PATH="/usr/local/lib/attacker:$PATH"
+
+CMD ["sleep", "infinity"]

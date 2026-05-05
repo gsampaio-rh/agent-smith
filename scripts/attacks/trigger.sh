@@ -17,8 +17,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
 banner "Phase 1: Trigger Agent"
+echo "@PHASE Trigger"
 
 AGENT_IP=$(resolve_agent_ip)
+echo "@TARGET $AGENT_IP neo-agent"
 echo "  Agent IP: $AGENT_IP"
 echo "  Target:   http://${NEO_UI_SVC}/api/chat"
 echo ""
@@ -31,9 +33,12 @@ HTTP_CODE=$(echo "$RESP" | tail -1)
 echo "  Response: HTTP $HTTP_CODE"
 
 if [[ "$HTTP_CODE" != "202" ]]; then
+  echo "@FINDING medium Expected HTTP 202 but got $HTTP_CODE — agent might be busy"
   echo "WARNING: Expected 202, got $HTTP_CODE. Agent might be busy."
 fi
 
+echo "@FINDING info Trigger prompt delivered to Neo UI"
 echo ""
 echo "Trigger sent. The agent will now read poisoned logs."
 echo "Next: wait-shell.sh"
+echo "@RESULT success Trigger prompt sent — agent will read poisoned logs"
