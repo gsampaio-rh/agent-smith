@@ -16,4 +16,11 @@ if [[ -n "${TTYD_CREDENTIAL:-}" ]]; then
   TTYD_ARGS+=(--credential "$TTYD_CREDENTIAL")
 fi
 
-exec ttyd "${TTYD_ARGS[@]}" bash --login
+# Use smith TUI if available and --no-tui is not set
+if [[ "${SMITH_NO_TUI:-}" == "1" ]] || [[ "${1:-}" == "--no-tui" ]]; then
+  exec ttyd "${TTYD_ARGS[@]}" bash --login
+elif command -v smith &>/dev/null; then
+  exec ttyd "${TTYD_ARGS[@]}" smith
+else
+  exec ttyd "${TTYD_ARGS[@]}" bash --login
+fi

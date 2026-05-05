@@ -2,7 +2,7 @@ FROM registry.access.redhat.com/ubi9/ubi-minimal:latest
 
 USER 0
 
-RUN microdnf install -y bash nmap-ncat jq tar gzip && microdnf clean all
+RUN microdnf install -y bash nmap-ncat jq tar gzip python3.12 python3.12-pip && microdnf clean all
 
 # ttyd for web terminal — pinned to 1.7.7 with SHA256 verification
 ARG TTYD_VERSION=1.7.7
@@ -14,7 +14,7 @@ RUN curl -fsSL -o /usr/local/bin/ttyd \
 
 RUN mkdir -p /usr/local/lib/attacker /data/payloads
 
-COPY scripts/ /usr/local/lib/attacker/
+COPY attacks/ /usr/local/lib/attacker/
 COPY motd.sh /etc/profile.d/motd.sh
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY payloads/ /data/payloads/
@@ -22,6 +22,10 @@ COPY payloads/ /data/payloads/
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     /usr/local/lib/attacker/*.sh \
     /etc/profile.d/motd.sh
+
+# Smith TUI — install Python package
+COPY smith-pkg/ /opt/smith/
+RUN pip3.12 install --no-cache-dir /opt/smith/
 
 ENV PATH="/usr/local/lib/attacker:$PATH"
 

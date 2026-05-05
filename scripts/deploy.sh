@@ -35,7 +35,11 @@ ATTACKER_BUILD_CONTEXT=$(mktemp -d)
 trap 'rm -rf "$ATTACKER_BUILD_CONTEXT"' EXIT
 
 cp -r "$BUILD_DIR"/* "$ATTACKER_BUILD_CONTEXT/"
+cp -r "$SCRIPT_DIR/attacks" "$ATTACKER_BUILD_CONTEXT/attacks"
 cp -r "$SCRIPT_DIR/payloads" "$ATTACKER_BUILD_CONTEXT/payloads"
+mkdir -p "$ATTACKER_BUILD_CONTEXT/smith-pkg"
+cp "$PROJECT_ROOT/pyproject.toml" "$ATTACKER_BUILD_CONTEXT/smith-pkg/"
+cp -r "$PROJECT_ROOT/smith" "$ATTACKER_BUILD_CONTEXT/smith-pkg/smith"
 
 oc start-build "$ATTACKER_BC_NAME" \
   --from-dir="$ATTACKER_BUILD_CONTEXT" \

@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "smith"
+version = "0.1.0"
+description = "Agent Smith — interactive red-team TUI for The Matrix workshop"
+requires-python = ">=3.12"
+dependencies = [
+    "textual>=3.0",
+    "rich>=13.0",
+]
+
+[project.scripts]
+smith = "smith.cli:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+]
+
+[tool.setuptools.packages.find]
+include = ["smith*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
