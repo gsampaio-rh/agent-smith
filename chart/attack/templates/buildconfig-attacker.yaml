@@ -12,10 +12,15 @@ spec:
       kind: ImageStreamTag
       name: {{ .Values.image.attacker.name }}:{{ .Values.image.attacker.tag }}
   source:
-    type: Binary
+    type: Git
+    git:
+      uri: {{ .Values.build.attacker.git.uri }}
+      ref: {{ .Values.build.attacker.git.ref }}
   strategy:
     type: Docker
     dockerStrategy:
-      dockerfilePath: Dockerfile
+      dockerfilePath: build/Dockerfile
+  triggers:
+    - type: ConfigChange
   resources:
     {{- toYaml .Values.build.attacker.resources | nindent 4 }}

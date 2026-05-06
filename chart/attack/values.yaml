@@ -14,6 +14,9 @@ image:
 
 build:
   attacker:
+    git:
+      uri: https://github.com/gsampaio-rh/agent-smith.git
+      ref: main
     resources:
       requests:
         cpu: 500m

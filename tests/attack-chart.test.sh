@@ -69,7 +69,9 @@ assert_contains "BuildConfig created" "$OUTPUT" "kind: BuildConfig"
 assert_contains "BuildConfig name" "$OUTPUT" "name: neo-attacker"
 assert_contains "ImageStream created" "$OUTPUT" "kind: ImageStream"
 assert_contains "ImageStream name" "$OUTPUT" "name: neo-attacker"
-assert_contains "BuildConfig docker strategy" "$OUTPUT" "dockerfilePath: Dockerfile"
+assert_contains "BuildConfig docker strategy" "$OUTPUT" "dockerfilePath: build/Dockerfile"
+assert_contains "BuildConfig git source" "$OUTPUT" "uri: https://github.com/gsampaio-rh/agent-smith.git"
+assert_contains "BuildConfig ConfigChange trigger" "$OUTPUT" "type: ConfigChange"
 
 # NetworkPolicy
 assert_contains "NetworkPolicy created" "$OUTPUT" "name: allow-bind-shell"

@@ -14,17 +14,17 @@ RUN curl -fsSL -o /usr/local/bin/ttyd \
 
 RUN mkdir -p /usr/local/lib/attacker /data/payloads
 
-COPY attacks/ /usr/local/lib/attacker/
-COPY motd.sh /etc/profile.d/motd.sh
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
-COPY payloads/ /data/payloads/
+COPY scripts/attacks/ /usr/local/lib/attacker/
+COPY build/motd.sh /etc/profile.d/motd.sh
+COPY build/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY scripts/payloads/ /data/payloads/
 
 RUN chmod +x /usr/local/bin/entrypoint.sh \
     /usr/local/lib/attacker/*.sh \
     /etc/profile.d/motd.sh
 
-# Smith TUI — install Python package
-COPY smith-pkg/ /opt/smith/
+COPY pyproject.toml /opt/smith/
+COPY smith/ /opt/smith/smith/
 RUN pip3.12 install --no-cache-dir /opt/smith/
 
 ENV PATH="/usr/local/lib/attacker:$PATH"

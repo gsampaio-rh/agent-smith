@@ -6,16 +6,8 @@ help: ## Show this help
 deploy: ## Deploy attack infrastructure (attacker pod + NetworkPolicy + build)
 	./scripts/deploy.sh
 
-build: ## Build attacker container image only
-	@TMPDIR=$$(mktemp -d) && \
-	  trap "rm -rf $$TMPDIR" EXIT && \
-	  cp -r build/* "$$TMPDIR/" && \
-	  cp -r scripts/attacks "$$TMPDIR/attacks" && \
-	  cp -r scripts/payloads "$$TMPDIR/payloads" && \
-	  mkdir -p "$$TMPDIR/smith-pkg" && \
-	  cp pyproject.toml "$$TMPDIR/smith-pkg/" && \
-	  cp -r smith "$$TMPDIR/smith-pkg/smith" && \
-	  oc start-build $${ATTACKER_BC_NAME:-neo-attacker} --from-dir="$$TMPDIR" -n $${ATTACKER_NS:-attacker} --follow
+build: ## Build attacker container image (triggers Git-based build on OpenShift)
+	oc start-build $${ATTACKER_BC_NAME:-neo-attacker} -n $${ATTACKER_NS:-attacker} --follow
 
 clean: ## Remove attack infrastructure
 	./scripts/cleanup.sh
